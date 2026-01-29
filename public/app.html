@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eventify - Event & Club Management System</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-top">
+                <div class="brand-info" style="cursor: pointer;" onclick="goToHomePage()">
+                    <div class="org-name">🎯 Eventify</div>
+                    <div class="org-sub">Integral University</div>
+                </div>
+
+                <div class="header-center">
+                    <div class="auth-actions">
+                        <button class="auth-btn" id="signinBtn" onclick="openLoginModal()">Sign In</button>
+                        <button class="auth-btn outline" id="signupBtn" onclick="openSignupModal()">Sign Up</button>
+                    </div>
+
+                    <div class="user-panel" id="userPanel">
+                        <div class="user-meta">
+                            <div class="user-name">Guest</div>
+                            <div class="user-email">Not signed in</div>
+                        </div>
+                    </div>
+
+                    <div class="role-toggle" id="roleToggle">
+                        <button class="toggle-option active" data-role="participant">Participant</button>
+                        <button class="toggle-option" data-role="admin">Admin</button>
+                        <div class="toggle-indicator"></div>
+                    </div>
+                </div>
+
+                <div class="header-right">
+                </div>
+
+                <div id="connectionStatus" class="connection-status"></div>
+            </div>
+        </div>
+
+        <!-- Main navigation (Browse / My Registrations) -->
+        <div class="main-nav">
+            <button id="navBrowse" class="nav-btn active" onclick="switchTab('browse')">🔍 Browse Events</button>
+            <button id="navMyRegs" class="nav-btn" onclick="switchTab('my-registrations')">🎟️ My Registrations <span id="myRegCount" class="nav-badge">0</span></button>
+        </div>
+
+        <!-- Global Message Area -->
+        <div id="globalMessage" class="message"></div>
+
+        <div class="main-content">
+            <!-- Participant View -->
+            <div id="participantView" class="view active">
+                <h2 class="section-title">Available Events</h2>
+                <div id="participantMessage" class="message"></div>
+                <div id="eventsGrid" class="events-grid">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading events...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Registrations View -->
+            <div id="myRegistrationsView" class="view">
+                <h2 class="section-title">My Registrations</h2>
+                <div id="myRegsMessage" class="message"></div>
+                <div id="myRegsList" class="registrations-list">
+                    <div class="empty-state">No registrations yet.</div>
+                </div>
+            </div>
+
+            <!-- Admin View -->
+            <div id="adminView" class="view">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 class="section-title" style="margin: 0;">Event Management</h2>
+                    <button class="btn btn-primary" onclick="openCreateEventModal()">+ Create Event</button>
+                </div>
+                <div id="adminMessage" class="message"></div>
+                <div id="adminEventsGrid" class="events-grid">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading events...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Event Modal -->
+    <div id="createEventModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Event</h2>
+            </div>
+            <form id="createEventForm">
+                <div class="form-group">
+                    <label for="eventName">Event Name *</label>
+                    <input type="text" id="eventName" required>
+                    <div class="field-error" id="eventNameError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="eventDescription">Description *</label>
+                    <textarea id="eventDescription" required></textarea>
+                    <div class="field-error" id="eventDescriptionError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="eventDate">Event Date *</label>
+                    <input type="date" id="eventDate" required>
+                    <div class="field-error" id="eventDateError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="eventCapacity">Maximum Capacity *</label>
+                    <input type="number" id="eventCapacity" min="1" required>
+                    <div class="field-error" id="eventCapacityError"></div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary">Create Event</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeCreateEventModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div id="registrationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Register for Event</h2>
+            </div>
+            <form id="registrationForm">
+                <input type="hidden" id="regEventId">
+                <div class="form-group">
+                    <label for="participantName">Your Name *</label>
+                    <input type="text" id="participantName" required>
+                    <div class="field-error" id="participantNameError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="participantEmail">Email *</label>
+                    <input type="email" id="participantEmail" required>
+                    <div class="field-error" id="participantEmailError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="participantPhone">Phone Number *</label>
+                    <input type="tel" id="participantPhone" required>
+                    <div class="field-error" id="participantPhoneError"></div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary">Submit Registration</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeRegistrationModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Participants Modal -->
+    <div id="participantsModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2>Event Participants</h2>
+            </div>
+            <div id="participantsContent"></div>
+            <button class="btn btn-secondary" onclick="closeParticipantsModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- Announcement Modal -->
+    <div id="announcementModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Send Announcement</h2>
+            </div>
+            <form id="announcementForm">
+                <input type="hidden" id="announceEventId">
+                <div class="form-group">
+                    <label for="announcementMessage">Message *</label>
+                    <textarea id="announcementMessage" required></textarea>
+                    <div class="field-error" id="announcementMessageError"></div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary">Send Announcement</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAnnouncementModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Sign In</h2>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email *</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password *</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button type="submit" class="btn btn-primary">Sign In</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeLoginModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create Account</h2>
+            </div>
+            <form id="signupForm">
+                <div class="form-group">
+                    <label for="signupName">Full Name *</label>
+                    <input type="text" id="signupName" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupEmail">Email *</label>
+                    <input type="email" id="signupEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">Password *</label>
+                    <input type="password" id="signupPassword" required>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button type="submit" class="btn btn-primary">Sign Up</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeSignupModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
